@@ -55,7 +55,7 @@ namespace Komorebi.OnScreen {
 
             foreach (var child in get_children()) {
                 child.destroy_all_children();
-                remove_child(child);
+                remove(child);
             }
 
         }

@@ -31,27 +31,23 @@ namespace Komorebi.OnScreen {
     // File/Directory info Window
     InfoWindow infoWindow;
 
-    public class DesktopIcons : ResponsiveGrid {
+    // List of icons (used to make things faster when reloading)
+    Gee.ArrayList<Icon> iconsList;
 
-        BackgroundWindow parent;
-        public BackgroundWindow window { get { return parent; } }
+    public class DesktopIcons : ResponsiveGrid {
 
         /* Desktops path */
         string DesktopPath = Environment.get_user_special_dir(UserDirectory.DESKTOP);
 
         FileMonitor fileMonitor;
 
-        // List of icons (used to make things faster when reloading)
-        public Gee.ArrayList<Icon> iconsList { get; private set; }
-
-        public DesktopIcons (BackgroundWindow parent) {
-            this.parent = parent;
+        public DesktopIcons () {
 
             infoWindow = new InfoWindow();
             iconsList = new Gee.ArrayList<Icon>();
 
-            margin_top = 60;
-            margin_left = 120;
+            margin_top = 30;
+            margin_left = 30;
             y_expand = true;
             iconSize = 64;
 
@@ -110,8 +106,8 @@ namespace Komorebi.OnScreen {
                 // Location of the file
                 string FilePath = DesktopPath + "/" + info.get_name ();
 
-                string name = info.get_name();
-                Gdk.Pixbuf iconPixbuf = null;
+                string Name = info.get_name();
+                Gdk.Pixbuf IconPixbuf = null;
                 var Path = FilePath;
                 var DFile = File.new_for_path(FilePath);
                 OnScreen.Icon icon = null;
@@ -119,48 +115,43 @@ namespace Komorebi.OnScreen {
                 /* Check if the file is .desktop */
                 if(DFile.get_basename().has_suffix(".desktop")) {
 
-                    var keyFile = new KeyFile();
-                    keyFile.load_from_file(DFile.get_path(), 0);
+                    var _KeyFile = new KeyFile();
+                    _KeyFile.load_from_file(DFile.get_path(), 0);
 
-                    // make sure the keyFile has the required keys
-                    if(!keyFile.has_key(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_NAME) ||
-                        !keyFile.has_key(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_ICON) ||
-                        !keyFile.has_key(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_EXEC))
-                        continue;
+                    Name = _KeyFile.get_string(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_NAME);
 
-                    name = keyFile.get_string(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_NAME);
+                    var Icn = _KeyFile.get_string(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_ICON);
 
-                    var iconPath = keyFile.get_string(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_ICON);
+                    IconPixbuf = Utilities.getIconFrom(Icn, iconSize);
 
-                    iconPixbuf = Utilities.getIconFrom(iconPath, iconSize);
+                    Path = _KeyFile.get_string(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_EXEC);
 
-                    Path = keyFile.get_string(KeyFileDesktop.GROUP, KeyFileDesktop.KEY_EXEC);
 
-                    icon = new Icon(this, name, iconPixbuf, Path, DFile.get_path(), true);
+                    icon = new Icon(Name, IconPixbuf, Path, DFile.get_path(), true);
 
 
 
                 } else {
 
-                    string iconPath = LoadIcon(DFile);
+                    string IconPath = LoadIcon(DFile);
 
-                    if(iconPath == null) {
+                    if(IconPath == null) {
                         if(DFile.query_file_type(FileQueryInfoFlags.NONE) == FileType.DIRECTORY)
-                            iconPath = "folder";
+                            IconPath = "folder";
                         else {
 
                             var iconQuery = DFile.query_info("standard::icon", 0).get_icon ().to_string().split(" ");
                             if(iconQuery.length > 1)
-                                iconPath = iconQuery[iconQuery.length - 1];
+                                IconPath = iconQuery[iconQuery.length - 1];
                         }
 
-                        iconPixbuf = Utilities.getIconFrom(iconPath, iconSize);
+                        IconPixbuf = Utilities.getIconFrom(IconPath, iconSize);
 
                     } else
-                        iconPixbuf = new Gdk.Pixbuf.from_file_at_scale(iconPath, iconSize, iconSize, false);
+                        IconPixbuf = new Gdk.Pixbuf.from_file_at_scale(IconPath, iconSize, iconSize, false);
 
 
-                    icon = new Icon(this, name, iconPixbuf, "", DFile.get_path(), false);
+                    icon = new Icon(Name, IconPixbuf, "", DFile.get_path(), false);
                 }
 
 
@@ -172,7 +163,7 @@ namespace Komorebi.OnScreen {
         /* Adds trash icon */
         private void addTrashIcon() {
 
-            iconsList.add(new Icon.Trash(this));
+            iconsList.add(new Icon.Trash());
         }
 
 
@@ -181,6 +172,10 @@ namespace Komorebi.OnScreen {
 
             var untitledFolder = File.new_for_path(getUntitledFolderName());
             untitledFolder.make_directory_async();
+
+            // var iconNewFolder = new Icon.NewFolder();
+            // append(iconNewFolder);
+            // iconNewFolder.unDimIcon(true);
 
         }
 

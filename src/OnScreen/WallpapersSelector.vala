@@ -1,5 +1,5 @@
 //  
-//  Copyright (C) 2017-2018 Abraham Masri @cheesecakeufo
+//  Copyright (C) 2014-2015 Abraham Masri
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -15,116 +15,117 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 
+
 using Gtk;
 using Gdk;
 
+
 namespace Komorebi.OnScreen {
 
-	List<Thumbnail> thumbnailsList;
+    List<Thumbnail> thumbnailsList;
 
-	public class WallpapersSelector : ScrolledWindow {
+    public class WallpapersSelector : ScrolledWindow {
 
-		public string path = "/System/Resources/Komorebi/";
+        public string path = "/System/Resources/Komorebi/";
 
-		Gtk.Grid grid = new Grid();
+        Gtk.Grid grid = new Grid();
 
-		int row = 0;
-		int column = 0;
+        int row = 0;
+        int column = 0;
 
-		// Signaled when a thumbnail is clicked
-		public signal void wallpaperChanged ();
+        // Signaled when a thumbnail is clicked
+        public signal void wallpaperChanged ();
 
-		public WallpapersSelector () {
+        public WallpapersSelector () {
 
-			thumbnailsList = new List<Thumbnail>();
+            thumbnailsList = new List<Thumbnail>();
 
-			set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
-			vexpand = true;
-			margin = 20;
+            set_policy(PolicyType.NEVER, PolicyType.AUTOMATIC);
+            vexpand = true;
+            margin = 20;
 
-			grid.halign = Align.CENTER;
-			grid.row_spacing = 5;
-			grid.column_spacing = 20;
-
-			getWallpapers();
-
-			// add the 'create new' thumbnail
-			// var create_new_thumbnail = new Thumbnail.Add();
-
-			// // Signals
-			// create_new_thumbnail.clicked.connect(() => wallpaperChanged());
-
-			// addThumbnail(create_new_thumbnail);
-			// thumbnailsList.append(create_new_thumbnail); 
-			
-			add(grid);
-		}
+            grid.halign = Align.CENTER;
+            grid.row_spacing = 5;
+            grid.column_spacing = 20;
 
 
-		public void getWallpapers () {
+            getWallpapers();
 
-			clearGrid();
+            // var thumbnail = new Thumbnail.Add();
+                            
+            // addThumbnail(thumbnail);
+            // thumbnailsList.append(thumbnail); 
+            
+            add(grid);
+        }
 
-			foreach(var thumbnail in thumbnailsList)
-				thumbnailsList.remove(thumbnail);
 
-			File wallpapersFolder = File.new_for_path("/System/Resources/Komorebi");
+        public void getWallpapers () {
 
-			try {
+            clearGrid();
 
-				var enumerator = wallpapersFolder.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
+            foreach(var thumbnail in thumbnailsList)
+                thumbnailsList.remove(thumbnail);
 
-				FileInfo info;
 
-				while ((info = enumerator.next_file ()) != null)
-					if (info.get_file_type () == FileType.DIRECTORY) {
+            File wallpapersFolder = File.new_for_path("/System/Resources/Komorebi");
 
-						var name = info.get_name();
-						var fullPath = path + name;
+            try {
 
-						// Check if we have a valid wallpaper
-						if (File.new_for_path(fullPath + "/wallpaper.jpg").query_exists() &&
-							File.new_for_path(fullPath + "/config").query_exists()) {
+                var enumerator = wallpapersFolder.enumerate_children ("standard::*", FileQueryInfoFlags.NOFOLLOW_SYMLINKS);
 
-							var thumbnail = new Thumbnail(path, name);
-							
-							// Signals
-							thumbnail.clicked.connect(() => wallpaperChanged());
+                FileInfo info;
 
-							addThumbnail(thumbnail);
-							thumbnailsList.append(thumbnail); 
-						} else
-							print(@"[WARNING]: Found an invalid wallpaper with name: $name \n");
-					}
+                while ((info = enumerator.next_file ()) != null)
+                    if (info.get_file_type () == FileType.DIRECTORY) {
 
-			} catch {
-				print("Could not read directory '/System/Resources/Komorebi/'");
-			}
-		}
+                        var name = info.get_name();
+                        var fullPath = path + name;
 
-		/* Adds a thumbnail to the grid */
-		private void addThumbnail (Thumbnail thumbnail) {
+                        // Check if we have a valid wallpaper
+                        if (File.new_for_path(fullPath + "/wallpaper.jpg").query_exists() &&
+                            File.new_for_path(fullPath + "/config").query_exists()) {
 
-			grid.attach (thumbnail, column, row, 1, 1);
+                            var thumbnail = new Thumbnail(path, name);
+                            
+                            // Signals
+                            thumbnail.clicked.connect(() => wallpaperChanged());
 
-			if(column >= 3) {
-				row++;
-				column = 0;
-			} else
-				column++;
+                            addThumbnail(thumbnail);
+                            thumbnailsList.append(thumbnail); 
+                        } else
+                            print(@"[WARNING]: Found an invalid wallpaper with name: $name \n");
+                    }
 
-			thumbnail.show_all();
-		}
+            } catch {
+                print("Could not read directory '/System/Resources/Komorebi/'");
+            }
+        }
 
-		/* Clears the grid */
-		private void clearGrid() {
+        /* Adds a thumbnail to the grid */
+        private void addThumbnail (Thumbnail thumbnail) {
 
-			foreach (var widget in grid.get_children ())
-				grid.remove(widget);
+            grid.attach (thumbnail, column, row, 1, 1);
 
-			column = 0;
-			row = 0;
-		}
+            if(column >= 3) {
+                row++;
+                column = 0;
+            } else
+                column++;
 
-	}
+
+            thumbnail.show_all();
+        }
+
+        /* Clears the grid */
+        private void clearGrid() {
+
+            foreach (var widget in grid.get_children ())
+                grid.remove(widget);
+
+            column = 0;
+            row = 0;
+        }
+
+    }
 }
