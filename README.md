@@ -28,7 +28,7 @@ It provides fully customizeable image, video, and web page wallpapers that can b
 
 Two ways:
 
-### Packaged install (easy)
+### Packaged install (CANNOT USE!!!)
 
 1. Download `Komorebi` from the [Komorebi releases page](https://github.com/iabem97/komorebi/releases).
 2. Install Komorebi using your favorite package installer (aka. double click on it)
